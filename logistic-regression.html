@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Logistic regression · ML Model Visualizer</title>
+<meta name="description" content="Watch the weights and bias of a logistic regression classifier update epoch by epoch.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23141412'/%3E%3Cpath d='M6 24 L13 15 L19 19 L26 8' stroke='%232a78d6' stroke-width='3' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header class="site-header">
+  <a class="brand" href="index.html">ml<b>·</b>model<b>·</b>visualizer</a>
+  <nav class="site-nav" aria-label="Models">
+    <a href="index.html">Home</a>
+    <a href="linear-regression.html">Linear regression</a>
+    <a href="logistic-regression.html" aria-current="page">Logistic regression</a>
+    <a href="neural-network.html">Neural network</a>
+  </nav>
+</header>
+
+<main>
+  <div class="page-head">
+    <h1>Logistic regression</h1>
+    <div class="formula">p = σ(w₁x₁ + w₂x₂ + b) &nbsp;·&nbsp; loss = binary cross-entropy &nbsp;·&nbsp; full-batch gradient descent</div>
+    <p>A straight-line classifier with three parameters. The shading is the model's probability of class 1; the solid line is where that probability is exactly 0.5. Try the XOR preset to see a problem one line cannot solve, then compare with the neural network page.</p>
+  </div>
+
+  <div class="workspace">
+    <aside class="controls" aria-label="Controls">
+      <section class="card" aria-labelledby="h-train">
+        <h2 id="h-train">Training loop</h2>
+        <div class="field" style="margin-top:.7rem">
+          <label class="field-label" for="lr">Learning rate η <span class="num" id="lr-val"></span></label>
+          <input type="range" id="lr" min="0.01" max="3" step="0.01" value="0.5">
+        </div>
+        <label class="check"><input type="checkbox" id="phase-mode"> <span><b>Phase by phase</b> — split each epoch into forward → loss → gradients → update, one press each</span></label>
+        <button class="btn wide" id="btn-step" type="button">Step 1 epoch</button>
+        <div class="btn-row">
+          <button class="btn ghost" id="btn-step10" type="button">+10 epochs</button>
+          <button class="btn ghost" id="btn-play" type="button" aria-pressed="false">Play</button>
+          <button class="btn ghost" id="btn-reset" type="button" title="Back to the initial weights, clear history">Reset</button>
+        </div>
+        <div class="field" style="margin-top:.8rem">
+          <label class="field-label" for="speed">Play speed <span class="num" id="speed-val"></span></label>
+          <input type="range" id="speed" min="0" max="7" step="1" value="3">
+        </div>
+        <div class="stats">
+          <div class="stat"><span class="label">epoch</span><span class="value" id="stat-epoch">0</span></div>
+          <div class="stat"><span class="label">loss now</span><span class="value" id="stat-loss">–</span></div>
+        </div>
+        <div class="warn" id="stat-warn" role="status" hidden></div>
+        <p class="kbd-hint">Tip: press <kbd>→</kbd> to step.</p>
+      </section>
+      <section class="card" aria-labelledby="h-init">
+        <h2 id="h-init">Initial weights</h2>
+        <p class="kbd-hint" style="margin:.4rem 0 .6rem">Training starts from these values. Edit any of them, then apply.</p>
+        <div id="init-weights"></div>
+        <button class="btn ghost wide" id="btn-apply-init" type="button">Apply &amp; restart from these</button>
+      </section>
+      <section class="card" aria-labelledby="h-data">
+        <h2 id="h-data">Data</h2>
+        <div class="field" style="margin-top:.7rem">
+          <label for="preset">Preset</label>
+          <select id="preset">
+            <option value="blobs">Two clusters (separable)</option>
+            <option value="overlap">Two clusters (overlapping)</option>
+            <option value="xor">XOR (not linearly separable)</option>
+          </select>
+        </div>
+        <div class="btn-row">
+          <button class="btn ghost" id="btn-randomize" type="button">New sample</button>
+          <button class="btn ghost" id="btn-clear" type="button">Clear</button>
+        </div>
+        <fieldset class="field" style="border:0;padding:0;margin:.7rem 0 0">
+          <legend class="field-label">Clicking the plot</legend>
+          <div class="btn-row">
+            <label class="check" style="margin:0"><input type="radio" name="click-mode" value="0" checked> add class 0</label>
+            <label class="check" style="margin:0"><input type="radio" name="click-mode" value="1"> add class 1</label>
+          </div>
+          <p class="kbd-hint" style="margin-top:.3rem">Shift-click does the second one.</p>
+        </fieldset>
+        <div class="field" style="margin-top:.8rem">
+          <label for="csv-input">Or paste CSV (<code>x1, x2, label</code> per line)</label>
+          <textarea id="csv-input" placeholder="-1.2, -0.8, 0&#10;1.1, 0.9, 1"></textarea>
+        </div>
+        <button class="btn ghost wide" id="btn-load-csv" type="button">Load CSV</button>
+        <p class="kbd-hint">Changing the data restarts the epoch history from the current weights.</p>
+      </section>
+    </aside>
+
+    <div class="stage">
+      <section class="card" aria-labelledby="h-plot">
+        <div class="card-head"><h2 id="h-plot">Decision boundary</h2><span class="hint">showing the weights after the inspected epoch</span></div>
+        <div class="plot-wrap"><canvas id="main-plot" aria-label="Two-class scatter plot shaded by predicted probability"></canvas></div>
+        <div class="legend">
+          <span><span class="swatch" style="background:var(--series-1)"></span>class 0</span>
+          <span><span class="swatch" style="background:var(--series-2)"></span>class 1</span>
+          <span><span class="swatch line" style="background:var(--text-primary)"></span>p = 0.5 after this epoch</span>
+          <span><span class="swatch dash"></span>before this epoch</span>
+        </div>
+      </section>
+
+      <div class="row-2">
+        <section class="card" aria-labelledby="h-traj">
+          <div class="card-head"><h2 id="h-traj">Weights &amp; biases, epoch by epoch</h2><span class="hint">click any epoch to inspect it</span></div>
+          <div id="traj-chart"></div>
+          <div class="legend" id="traj-legend"></div>
+        </section>
+        <section class="card" aria-labelledby="h-loss">
+          <div class="card-head"><h2 id="h-loss">Loss</h2><span class="hint">L(θ) after each update</span></div>
+          <div id="loss-chart"></div>
+        </section>
+      </div>
+
+      <section class="card math-panel" aria-labelledby="h-math">
+        <div class="card-head">
+          <h2 id="h-math">Inside the epoch</h2>
+          <div class="scrubber">
+            <button class="btn ghost small" id="epoch-prev" type="button" aria-label="Previous epoch">‹</button>
+            <input type="range" id="epoch-range" min="1" max="1" value="1" aria-label="Epoch to inspect">
+            <button class="btn ghost small" id="epoch-next" type="button" aria-label="Next epoch">›</button>
+            <button class="btn ghost small" id="epoch-latest" type="button">Latest</button>
+          </div>
+        </div>
+        <div id="epoch-label"></div>
+        <ol class="loop-strip" id="loop-strip">
+          <li data-phase="1"><b>① Forward pass</b>predict every sample</li>
+          <li data-phase="2"><b>② Loss</b>how wrong, on average</li>
+          <li data-phase="3"><b>③ Gradients</b>which way is downhill</li>
+          <li data-phase="4"><b>④ Update</b>take the step</li>
+        </ol>
+        <p id="math-empty">Press <b>Step 1 epoch</b> and this panel fills with the real numbers from that epoch: every prediction, the loss, each gradient and the exact update to every weight and bias. Turn on <b>Phase by phase</b> to walk through it one stage at a time.</p>
+        <section class="phase" id="phase-forward" hidden><div class="phase-title"><span class="badge">1</span><h3>Forward pass</h3></div><div class="phase-body"></div></section>
+        <section class="phase" id="phase-loss" hidden><div class="phase-title"><span class="badge">2</span><h3>Loss</h3></div><div class="phase-body"></div></section>
+        <section class="phase" id="phase-grads" hidden><div class="phase-title"><span class="badge">3</span><h3>Gradients</h3></div><div class="phase-body"></div></section>
+        <section class="phase" id="phase-update" hidden><div class="phase-title"><span class="badge">4</span><h3>Update</h3></div><div class="phase-body"></div></section>
+      </section>
+
+      <section class="card" aria-labelledby="h-log">
+        <div class="card-head"><h2 id="h-log">Epoch log</h2><button class="btn ghost small" id="btn-download" type="button">Download CSV</button></div>
+        <div class="log-scroll" id="log-table"></div>
+      </section>
+    </div>
+  </div>
+</main>
+<footer>
+  Built by <a href="https://github.com/Yassharth">Yassharth</a> as a learning tool ·
+  <a href="https://github.com/Yassharth/ml_model_visualizer">source on GitHub</a> ·
+  everything runs in your browser; no data leaves this page.
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script src="js/core.js"></script>
+<script src="js/charts.js"></script>
+<script src="js/models.js"></script>
+<script src="js/trainer.js"></script>
+<script src="js/pages/logistic.js"></script>
+</body>
+</html>

@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ML Model Visualizer · watch weights learn, epoch by epoch</title>
+<meta name="description" content="Step through the training loop of linear regression, logistic regression and neural networks and watch every weight and bias update, epoch by epoch, with the real numbers.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23141412'/%3E%3Cpath d='M6 24 L13 15 L19 19 L26 8' stroke='%232a78d6' stroke-width='3' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header class="site-header">
+  <a class="brand" href="index.html">ml<b>·</b>model<b>·</b>visualizer</a>
+  <nav class="site-nav" aria-label="Models">
+    <a href="index.html" aria-current="page">Home</a>
+    <a href="linear-regression.html">Linear regression</a>
+    <a href="logistic-regression.html">Logistic regression</a>
+    <a href="neural-network.html">Neural network</a>
+  </nav>
+</header>
+
+<main>
+  <section class="hero">
+    <div>
+      <h1>Watch a model learn, one epoch at a time.</h1>
+      <p>
+        Every model here trains with the same four-step loop. Pick a model, set your own starting
+        weights and data, then step through training and see each weight and bias change —
+        with the actual numbers for the forward pass, the loss, every gradient and every update.
+      </p>
+      <div class="cta btn-row">
+        <a class="btn" href="linear-regression.html">Start with linear regression</a>
+        <a class="btn ghost" href="neural-network.html">Jump to the neural network</a>
+      </div>
+    </div>
+
+    <figure class="loop-figure card" style="margin:0" aria-label="The training loop: forward pass, loss, gradients, update, repeat">
+      <svg viewBox="0 0 420 300" role="img">
+        <title>The training loop</title>
+        <defs>
+          <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="currentColor" style="color:var(--text-secondary)"/>
+          </marker>
+        </defs>
+        <!-- boxes -->
+        <rect class="box" x="20" y="24" width="160" height="70" rx="6"/>
+        <rect class="box" x="240" y="24" width="160" height="70" rx="6"/>
+        <rect class="box" x="240" y="200" width="160" height="70" rx="6"/>
+        <rect class="box" x="20" y="200" width="160" height="70" rx="6"/>
+        <circle class="num-badge" cx="38" cy="42" r="10"/><text class="num-text" x="38" y="46" text-anchor="middle">1</text>
+        <circle class="num-badge" cx="258" cy="42" r="10"/><text class="num-text" x="258" y="46" text-anchor="middle">2</text>
+        <circle class="num-badge" cx="258" cy="218" r="10"/><text class="num-text" x="258" y="222" text-anchor="middle">3</text>
+        <circle class="num-badge" cx="38" cy="218" r="10"/><text class="num-text" x="38" y="222" text-anchor="middle">4</text>
+        <text x="56" y="47">Forward pass</text>
+        <text class="sub" x="36" y="76">ŷ = f(x; θ)</text>
+        <text x="276" y="47">Loss</text>
+        <text class="sub" x="256" y="76">L = mean ℓ(ŷ, y)</text>
+        <text x="276" y="223">Gradients</text>
+        <text class="sub" x="256" y="252">∇L(θ) via chain rule</text>
+        <text x="56" y="223">Update</text>
+        <text class="sub" x="36" y="252">θ ← θ − η·∇L(θ)</text>
+        <!-- arrows -->
+        <path class="arrow" d="M182 59 H236" marker-end="url(#ah)"/>
+        <path class="arrow" d="M320 96 V196" marker-end="url(#ah)"/>
+        <path class="arrow" d="M238 235 H184" marker-end="url(#ah)"/>
+        <path class="arrow" d="M100 198 V98" marker-end="url(#ah)"/>
+        <text class="sub" x="210" y="152" text-anchor="middle">one lap = one epoch</text>
+      </svg>
+    </figure>
+  </section>
+
+  <h2 class="section-title">Models</h2>
+  <div class="models">
+    <a class="card model-card" href="linear-regression.html">
+      <span class="kicker">ŷ = m·x + b · MSE</span>
+      <h2>Linear regression</h2>
+      <p>Two parameters. See the slope and intercept chase the data, with every residual drawn on the plot.</p>
+    </a>
+    <a class="card model-card" href="logistic-regression.html">
+      <span class="kicker">p = σ(w·x + b) · cross-entropy</span>
+      <h2>Logistic regression</h2>
+      <p>Three parameters. Watch the decision boundary rotate and slide into place — and fail on XOR.</p>
+    </a>
+    <a class="card model-card" href="neural-network.html">
+      <span class="kicker">2 → H → 1 · backpropagation</span>
+      <h2>Neural network</h2>
+      <p>Up to 33 parameters, all tracked. Trace backprop through a single sample, unit by unit.</p>
+    </a>
+    <div class="card model-card soon">
+      <span class="kicker">planned</span>
+      <h2>CNNs, RNNs &amp; LSTMs</h2>
+      <p>Same loop, new architectures. Coming later.</p>
+    </div>
+  </div>
+
+  <h2 class="section-title">How to use it</h2>
+  <div class="how">
+    <div class="card"><h3>Set the starting point</h3><p>Type your own initial weights and pick or paste a dataset (CSV). Click the plot to add points.</p></div>
+    <div class="card"><h3>Step the loop</h3><p>Step one epoch, ten, or press Play. Turn on <b>Phase by phase</b> to run forward → loss → gradients → update one press at a time.</p></div>
+    <div class="card"><h3>Read the numbers</h3><p>The trajectory chart shows every parameter across epochs. Click any epoch to open its full worked arithmetic.</p></div>
+    <div class="card"><h3>Break it on purpose</h3><p>Crank the learning rate until training diverges, or feed XOR to logistic regression, and see exactly why.</p></div>
+  </div>
+</main>
+
+<footer>
+  Built by <a href="https://github.com/Yassharth">Yassharth</a> as a learning tool ·
+  <a href="https://github.com/Yassharth/ml_model_visualizer">source on GitHub</a> ·
+  everything runs in your browser; no data leaves this page.
+</footer>
+</body>
+</html>
